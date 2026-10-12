@@ -1,0 +1,26 @@
+name: Verify Build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-on-windows:
+    strategy:
+      matrix:
+        os: [windows-latest, windows-11-arm]
+        java: ['11', '17', '21', '25']
+      max-parallel: 10
+      fail-fast: false
+    name: leg ${{ matrix.os }} | ${{ matrix.java }}
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up JDK 11
+      uses: actions/setup-java@v5
+      with:
+        java-version: '${{ matrix.java }}'
+        distribution: 'temurin'
+        cache: maven
+    - name: Build with Maven
+      run: mvn -B -Pskip-slow-tests clean verify --file pom.xml
+    timeout-minutes: 150
